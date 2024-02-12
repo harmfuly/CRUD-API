@@ -1,0 +1,24 @@
+{
+  "name": "usersapi",
+  "version": "1.0.0",
+  "description": "userapi curd operations",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harmfuly/CRUD-API.git"
+  },
+  "author": "Natalia Davydova",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harmfuly/CRUD-API/issues"
+  },
+  "homepage": "https://github.com/harmfuly/CRUD-API#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemon": "^3.0.3"
+  }
+}
