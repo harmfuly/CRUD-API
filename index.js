@@ -13,9 +13,9 @@ app.use(express.json());
 app.use('/api/users',router);
 
 const users = [
-    { id: uuidv4(), name: "Miley Cyrus", age: 33, gender: "female" },
-    { id: uuidv4(), name: "Chris Hemsworth", age: 40, gender: "male" },
-    { id: uuidv4(), name: "Johnny Depp", age: 60, gender: "male" }
+    { id: uuidv4(), name: "Miley Cyrus", age: 33, gender: "female", "hobbies": [] },
+    { id: uuidv4(), name: "Chris Hemsworth", age: 40, gender: "male", "hobbies": [] },
+    { id: uuidv4(), name: "Johnny Depp", age: 60, gender: "male", "hobbies": [] },
 ];
 
 app.get('/', (req, res) => {
@@ -29,10 +29,6 @@ router.get('/', async (req, res, next) => {
         message: "Users data fetched successfully",
         data: users
     });
-});
-
-app.listen(5000, function(){
-    console.log("App running on http://localhost:5000");
 });
 
 router.get('/:userId', function(req, res, next) {
@@ -66,21 +62,21 @@ router.get('/:userId', function(req, res, next) {
 
 
 router.post('/', function(req, res, next) {
-    const { name, age, gender } = req.body;
+    const { username, age, hobbies } = req.body;
 
-    if (!name || !age || !gender) {
+    if (!username || !age || !Array.isArray(hobbies)) {
         return res.status(400).json({
             status: 400,
             statusText: 'Bad Request',
-            message: 'Missing required fields: name, age, or gender.'
+            message: 'Missing required fields: username, age, or hobbies.'
         });
     }
 
     const newUser = {
         id: uuidv4(),
-        name,
+        username,
         age,
-        gender
+        hobbies: hobbies.length > 0 ? hobbies : []
     };
 
     users.push(newUser);
@@ -154,6 +150,27 @@ router.delete('/:userId', function(req, res, next) {
     users.splice(userIndex, 1);
 
     res.status(204).send();
+});
+
+app.use((req, res) => {
+    res.status(404).json({
+        status: 404,
+        statusText: 'Not Found',
+        message: 'The requested resource was not found.'
+    });
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        status: 500,
+        statusText: 'Internal Server Error',
+        message: 'An unexpected error occurred. Please try again later.'
+    });
+});
+
+app.listen(PORT, function() {
+    console.log(`App running on http://localhost:${PORT}`);
 });
 
 
