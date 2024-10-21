@@ -1,5 +1,10 @@
 import express, { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const PORT = process.env.PORT || 5000;
 
 let app =  express();
 let router = Router();
