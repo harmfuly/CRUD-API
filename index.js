@@ -1,10 +1,11 @@
 import express, { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+
 let app =  express();
 let router = Router();
 
-app.use('/api/users',router);
 app.use(express.json());
+app.use('/api/users',router);
 
 const users = [
     { id: uuidv4(), name: "Miley Cyrus", age: 33, gender: "female" },
