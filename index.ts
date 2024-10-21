@@ -1,4 +1,5 @@
-import express, { Router } from 'express';
+import 'ts-node/register';
+import express, { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 
@@ -6,23 +7,30 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-let app =  express();
-let router = Router();
+const app = express();
+const router = express.Router();
 
 app.use(express.json());
-app.use('/api/users',router);
+app.use('/api/users', router);
 
-const users = [
-    { id: uuidv4(), name: "Miley Cyrus", age: 33, gender: "female", "hobbies": [] },
-    { id: uuidv4(), name: "Chris Hemsworth", age: 40, gender: "male", "hobbies": [] },
-    { id: uuidv4(), name: "Johnny Depp", age: 60, gender: "male", "hobbies": [] },
+interface User {
+    id: string;
+    username: string;
+    age: number;
+    hobbies: string[];
+}
+
+const users: User[] = [
+    { id: uuidv4(), username: "Miley Cyrus", age: 33, hobbies: [] },
+    { id: uuidv4(), username: "Chris Hemsworth", age: 40, hobbies: [] },
+    { id: uuidv4(), username: "Johnny Depp", age: 60, hobbies: [] },
 ];
 
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
     res.status(200).send('Welcome to the CRUD API!');
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', async (req: Request, res: Response) => {
     res.status(200).json({
         status: 200,
         statusText: "Ok",
@@ -31,10 +39,10 @@ router.get('/', async (req, res, next) => {
     });
 });
 
-router.get('/:userId', function(req, res, next) {
+router.get('/:userId', (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.userId;
 
-    const isValidUUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(userId);
+    const isValidUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(userId);
     if (!isValidUUID) {
         return res.status(400).json({
             status: 400,
@@ -60,8 +68,7 @@ router.get('/:userId', function(req, res, next) {
     });
 });
 
-
-router.post('/', function(req, res, next) {
+router.post('/', (req: Request, res: Response) => {
     const { username, age, hobbies } = req.body;
 
     if (!username || !age || !Array.isArray(hobbies)) {
@@ -72,7 +79,7 @@ router.post('/', function(req, res, next) {
         });
     }
 
-    const newUser = {
+    const newUser: User = {
         id: uuidv4(),
         username,
         age,
@@ -89,11 +96,11 @@ router.post('/', function(req, res, next) {
     });
 });
 
-router.put('/:userId', function(req, res, next) {
+router.put('/:userId', (req: Request, res: Response) => {
     const userId = req.params.userId;
-    const { name, age, gender } = req.body;
+    const { username, age, hobbies } = req.body;
 
-    const isValidUUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(userId);
+    const isValidUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(userId);
     if (!isValidUUID) {
         return res.status(400).json({
             status: 400,
@@ -113,9 +120,9 @@ router.put('/:userId', function(req, res, next) {
 
     users[userIndex] = {
         ...users[userIndex],
-        name: name || users[userIndex].name,
+        username: username || users[userIndex].username,
         age: age || users[userIndex].age,
-        gender: gender || users[userIndex].gender
+        hobbies: hobbies !== undefined ? hobbies : users[userIndex].hobbies
     };
 
     res.status(200).json({
@@ -126,10 +133,10 @@ router.put('/:userId', function(req, res, next) {
     });
 });
 
-router.delete('/:userId', function(req, res, next) {
+router.delete('/:userId', (req: Request, res: Response) => {
     const userId = req.params.userId;
 
-    const isValidUUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/.test(userId);
+    const isValidUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(userId);
     if (!isValidUUID) {
         return res.status(400).json({
             status: 400,
@@ -152,7 +159,7 @@ router.delete('/:userId', function(req, res, next) {
     res.status(204).send();
 });
 
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
     res.status(404).json({
         status: 404,
         statusText: 'Not Found',
@@ -160,7 +167,7 @@ app.use((req, res) => {
     });
 });
 
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err.stack);
     res.status(500).json({
         status: 500,
@@ -169,8 +176,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(PORT, function() {
+app.listen(PORT, () => {
     console.log(`App running on http://localhost:${PORT}`);
 });
-
-
