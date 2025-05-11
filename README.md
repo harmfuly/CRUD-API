@@ -1,1 +1,173 @@
-# CRUD-API
+# CRUD API Server
+
+  
+
+## Install packages
+
+```bash
+    npm  install
+```
+
+## Run the server
+
+There are multiple ways to run the server depending on the environment:
+
+- **Development**: Run the server in development mode using `ts-node`.
+
+    ```bash
+    npm run start:dev
+    ```
+
+- **Production**: Build the application and run it in production mode.
+
+    ```bash
+    npm run start:prod
+    ```
+
+- **Multi**: Compile TypeScript and run the application in cluster mode.
+
+    ```bash
+    npm run start:multi
+    ```
+
+  
+The server will run on the port specified in the `.env` file. By default, it runs on port `4000`. You can configure it by setting `PORT` in `.env`.
+
+
+To exit the server, use the command `Ctrl + C`.
+
+## API Endpoints
+### GET /api/users
+Fetches all users.  
+Response:
+
+-   **200 OK**: Returns an array of all user records.
+
+Example:
+
+```bash
+    curl http://localhost:4000/api/users
+```
+
+# Troubleshooting `curl` Command
+
+If you encounter issues running the `curl` command inside the terminal within VS Code or another IDE, it might be due to how the integrated terminal handles certain requests or commands.
+
+### Solution:
+
+1. Open a new **external terminal** (outside of VS Code or your IDE).
+2. Run the `curl` command in the external terminal to ensure it works properly.
+
+This should resolve any issues related to executing `curl` in an IDE's integrated terminal.
+
+
+### POST /api/users
+
+Creates a new user.  
+Request body:
+
+```bash
+    {
+      "username": "New User",
+      "age": 25,
+      "hobbies": ["reading", "gaming"]
+    }
+```
+
+Response:
+
+-   **201 Created**: Returns the newly created user.
+-   **400 Bad Request**: If the required fields (`username`, `age`, `hobbies`) are missing.
+
+Example:
+
+```bash
+    curl -X POST http://localhost:4000/api/users \
+    -H "Content-Type: application/json" \
+    -d '{"username": "New User", "age": 25, "hobbies": ["reading", "gaming"]}'
+```
+
+### PUT /api/users/{userId}
+
+Updates an existing user by ID.  
+Request body:
+
+```bash
+    {
+      "username": "Updated User",
+      "age": 30,
+      "hobbies": ["fitness", "music"]
+    }
+```
+
+Response:
+
+-   **200 OK**: Returns the updated user.
+-   **400 Bad Request**: If `userId` is not a valid UUID.
+-   **404 Not Found**: If a user with the provided `userId` doesn't exist.
+
+Example:
+
+```bash
+    curl -X PUT http://localhost:4000/api/users/{userId} \
+    -H "Content-Type: application/json" \
+    -d '{"username": "Updated User", "age": 30, "hobbies": ["fitness", "music"]}'
+```
+
+### DELETE /api/users/{userId}
+
+Deletes a user by ID.  
+Response:
+
+-   **204 No Content**: If the user is successfully deleted.
+-   **400 Bad Request**: If `userId` is not a valid UUID.
+-   **404 Not Found**: If a user with the provided `userId` doesn't exist.
+
+Example:
+
+```bash
+    curl -X DELETE http://localhost:4000/api/users/{userId}
+```
+
+## Error Handling
+
+-   **404 Not Found**: For requests to non-existing endpoints.
+-   **500 Internal Server Error**: For server-side errors during request processing.
+
+## Run the tests
+
+To run the tests, use the following command:
+
+```bash
+npm run test
+```
+
+The tests will run with Jest in silent mode. If you need more detailed output, you can run:
+
+```bash
+npm run test:verbose
+```
+
+To stop the tests from running, press Ctrl + C.
+
+## Application Modes
+
+There are two modes for running the application:
+
+* Development: Run with nodemon or ts-node-dev.
+
+```bash
+npm run start:dev
+```
+
+* Production: Build and run the application.
+
+```bash
+npm run start:prod
+```
+
+* Multi: Compile TypeScript and run the application in cluster mode.
+
+```bash
+npm run start:multi
+```
