@@ -10,13 +10,29 @@
 
 ## Run the server
 
+There are multiple ways to run the server depending on the environment:
 
-    npm start
+- **Development**: Run the server in development mode using `ts-node`.
+
+    ```bash
+    npm run start:dev
+    ```
+
+- **Production**: Build the application and run it in production mode.
+
+    ```bash
+    npm run start:prod
+    ```
+
+- **Multi**: Compile TypeScript and run the application in cluster mode.
+
+    ```bash
+    npm run start:multi
+    ```
 
   
 The server will run on the port specified in the `.env` file. By default, it runs on port `4000`. You can configure it by setting `PORT` in `.env`.
 
-  
 
 To exit the server, use the command `Ctrl + C`.
 
@@ -29,7 +45,9 @@ Response:
 
 Example:
 
+```bash
     curl http://localhost:4000/api/users
+```
 
 # Troubleshooting `curl` Command
 
@@ -48,11 +66,13 @@ This should resolve any issues related to executing `curl` in an IDE's integrate
 Creates a new user.  
 Request body:
 
+```bash
     {
       "username": "New User",
       "age": 25,
       "hobbies": ["reading", "gaming"]
     }
+```
 
 Response:
 
@@ -61,20 +81,24 @@ Response:
 
 Example:
 
+```bash
     curl -X POST http://localhost:4000/api/users \
     -H "Content-Type: application/json" \
     -d '{"username": "New User", "age": 25, "hobbies": ["reading", "gaming"]}'
+```
 
 ### PUT /api/users/{userId}
 
 Updates an existing user by ID.  
 Request body:
 
+```bash
     {
       "username": "Updated User",
       "age": 30,
       "hobbies": ["fitness", "music"]
     }
+```
 
 Response:
 
@@ -84,9 +108,11 @@ Response:
 
 Example:
 
+```bash
     curl -X PUT http://localhost:4000/api/users/{userId} \
     -H "Content-Type: application/json" \
     -d '{"username": "Updated User", "age": 30, "hobbies": ["fitness", "music"]}'
+```
 
 ### DELETE /api/users/{userId}
 
@@ -99,21 +125,49 @@ Response:
 
 Example:
 
+```bash
     curl -X DELETE http://localhost:4000/api/users/{userId}
+```
 
 ## Error Handling
 
 -   **404 Not Found**: For requests to non-existing endpoints.
 -   **500 Internal Server Error**: For server-side errors during request processing.
 
+## Run the tests
+
+To run the tests, use the following command:
+
+```bash
+npm run test
+```
+
+The tests will run with Jest in silent mode. If you need more detailed output, you can run:
+
+```bash
+npm run test:verbose
+```
+
+To stop the tests from running, press Ctrl + C.
+
 ## Application Modes
 
 There are two modes for running the application:
 
--   **Development**: Run with `nodemon` or `ts-node-dev`.
+* Development: Run with nodemon or ts-node-dev.
 
-    npm run start:dev
+```bash
+npm run start:dev
+```
 
-- **Production**: Build and run the application.
+* Production: Build and run the application.
 
-    npm run start:prod
+```bash
+npm run start:prod
+```
+
+* Multi: Compile TypeScript and run the application in cluster mode.
+
+```bash
+npm run start:multi
+```
