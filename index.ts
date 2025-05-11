@@ -6,7 +6,7 @@ import { parse } from 'url';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 interface User {
     id: string;
@@ -22,12 +22,27 @@ const users: User[] = [
 ];
 
 const sendResponse = (res: ServerResponse, statusCode: number, data: object) => {
-    res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+    res.writeHead(statusCode, { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    });
     res.end(JSON.stringify(data));
 };
 
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const { pathname, query } = parse(req.url!, true);
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        });
+        return res.end();
+    }
+    
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    const { pathname } = parse(req.url!, true);
     const method = req.method;
 
     if (pathname === '/' && method === 'GET') {
@@ -70,30 +85,38 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
             body += chunk.toString();
         });
         req.on('end', () => {
-            const { username, age, hobbies } = JSON.parse(body);
+            try {
+                const { username, age, hobbies } = JSON.parse(body);
 
-            if (!username || !age || !Array.isArray(hobbies)) {
-                return sendResponse(res, 400, {
+                if (!username || !age || !Array.isArray(hobbies)) {
+                    return sendResponse(res, 400, {
+                        status: 400,
+                        statusText: 'Bad Request',
+                        message: 'Missing required fields: username, age, or hobbies.'
+                    });
+                }
+
+                const newUser: User = {
+                    id: uuidv4(),
+                    username,
+                    age,
+                    hobbies: hobbies.length > 0 ? hobbies : []
+                };
+
+                users.push(newUser);
+                sendResponse(res, 201, {
+                    status: 201,
+                    statusText: 'Created',
+                    message: 'User created successfully',
+                    data: newUser
+                });
+            } catch (error) {
+                sendResponse(res, 400, {
                     status: 400,
                     statusText: 'Bad Request',
-                    message: 'Missing required fields: username, age, or hobbies.'
+                    message: 'Invalid JSON format in request body.'
                 });
             }
-
-            const newUser: User = {
-                id: uuidv4(),
-                username,
-                age,
-                hobbies: hobbies.length > 0 ? hobbies : []
-            };
-
-            users.push(newUser);
-            sendResponse(res, 201, {
-                status: 201,
-                statusText: 'Created',
-                message: 'User created successfully',
-                data: newUser
-            });
         });
     } else if (pathname?.startsWith('/api/users/') && method === 'PUT') {
         const userId = pathname.split('/')[3];
@@ -110,30 +133,38 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
             body += chunk.toString();
         });
         req.on('end', () => {
-            const { username, age, hobbies } = JSON.parse(body);
+            try {
+                const { username, age, hobbies } = JSON.parse(body);
 
-            const userIndex = users.findIndex(user => user.id === userId);
-            if (userIndex === -1) {
-                return sendResponse(res, 404, {
-                    status: 404,
-                    statusText: 'Not Found',
-                    message: 'User not found with the provided userId.'
+                const userIndex = users.findIndex(user => user.id === userId);
+                if (userIndex === -1) {
+                    return sendResponse(res, 404, {
+                        status: 404,
+                        statusText: 'Not Found',
+                        message: 'User not found with the provided userId.'
+                    });
+                }
+
+                users[userIndex] = {
+                    ...users[userIndex],
+                    username: username || users[userIndex].username,
+                    age: age || users[userIndex].age,
+                    hobbies: hobbies !== undefined ? hobbies : users[userIndex].hobbies
+                };
+
+                sendResponse(res, 200, {
+                    status: 200,
+                    statusText: 'Ok',
+                    message: 'User updated successfully',
+                    data: users[userIndex]
+                });
+            } catch (error) {
+                sendResponse(res, 400, {
+                    status: 400,
+                    statusText: 'Bad Request',
+                    message: 'Invalid JSON format in request body.'
                 });
             }
-
-            users[userIndex] = {
-                ...users[userIndex],
-                username: username || users[userIndex].username,
-                age: age || users[userIndex].age,
-                hobbies: hobbies !== undefined ? hobbies : users[userIndex].hobbies
-            };
-
-            sendResponse(res, 200, {
-                status: 200,
-                statusText: 'Ok',
-                message: 'User updated successfully',
-                data: users[userIndex]
-            });
         });
     } else if (pathname?.startsWith('/api/users/') && method === 'DELETE') {
         const userId = pathname.split('/')[3];

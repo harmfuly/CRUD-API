@@ -14,7 +14,7 @@
     npm start
 
   
-The server will run on the port specified in the `.env` file. By default, it runs on port `5000`. You can configure it by setting `PORT` in `.env`.
+The server will run on the port specified in the `.env` file. By default, it runs on port `4000`. You can configure it by setting `PORT` in `.env`.
 
   
 
@@ -29,7 +29,19 @@ Response:
 
 Example:
 
-    curl http://localhost:5000/api/users
+    curl http://localhost:4000/api/users
+
+# Troubleshooting `curl` Command
+
+If you encounter issues running the `curl` command inside the terminal within VS Code or another IDE, it might be due to how the integrated terminal handles certain requests or commands.
+
+### Solution:
+
+1. Open a new **external terminal** (outside of VS Code or your IDE).
+2. Run the `curl` command in the external terminal to ensure it works properly.
+
+This should resolve any issues related to executing `curl` in an IDE's integrated terminal.
+
 
 ### POST /api/users
 
@@ -49,7 +61,7 @@ Response:
 
 Example:
 
-    curl -X POST http://localhost:5000/api/users \
+    curl -X POST http://localhost:4000/api/users \
     -H "Content-Type: application/json" \
     -d '{"username": "New User", "age": 25, "hobbies": ["reading", "gaming"]}'
 
@@ -72,7 +84,7 @@ Response:
 
 Example:
 
-    curl -X PUT http://localhost:5000/api/users/{userId} \
+    curl -X PUT http://localhost:5001/api/users/{userId} \
     -H "Content-Type: application/json" \
     -d '{"username": "Updated User", "age": 30, "hobbies": ["fitness", "music"]}'
 
@@ -87,7 +99,7 @@ Response:
 
 Example:
 
-    curl -X DELETE http://localhost:5000/api/users/{userId}
+    curl -X DELETE http://localhost:5001/api/users/{userId}
 
 ## Error Handling
 
