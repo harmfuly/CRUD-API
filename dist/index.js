@@ -1,28 +1,17 @@
 import 'ts-node/register';
-import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { createServer } from 'http';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import { parse } from 'url';
-
 dotenv.config();
-
 const PORT = parseInt(process.env.PORT || '4000', 10);
-
-interface User {
-    id: string;
-    username: string;
-    age: number;
-    hobbies: string[];
-}
-
-const users: User[] = [
+const users = [
     { id: uuidv4(), username: "Miley Cyrus", age: 33, hobbies: [] },
     { id: uuidv4(), username: "Chris Hemsworth", age: 40, hobbies: [] },
     { id: uuidv4(), username: "Johnny Depp", age: 60, hobbies: [] },
 ];
-
-const sendResponse = (res: ServerResponse, statusCode: number, data: object) => {
-    res.writeHead(statusCode, { 
+const sendResponse = (res, statusCode, data) => {
+    res.writeHead(statusCode, {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -30,22 +19,21 @@ const sendResponse = (res: ServerResponse, statusCode: number, data: object) => 
     });
     res.end(JSON.stringify(data));
 };
-
-const getRequestBody = async (req: IncomingMessage): Promise<any> => {
+const getRequestBody = async (req) => {
     return new Promise((resolve, reject) => {
         let body = '';
         req.on('data', chunk => body += chunk.toString());
         req.on('end', () => {
             try {
                 resolve(JSON.parse(body));
-            } catch {
+            }
+            catch {
                 reject('Invalid JSON');
             }
         });
     });
 };
-
-const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+const server = createServer((req, res) => {
     try {
         if (req.method === 'OPTIONS') {
             res.writeHead(204, {
@@ -55,29 +43,28 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
             });
             return res.end();
         }
-        
-    } catch (error) {
+    }
+    catch (error) {
         sendResponse(res, 500, {
             status: 500,
             statusText: 'Internal Server Error',
             message: 'Something went wrong on the server.'
         });
     }
-    
-    
-    const { pathname } = parse(req.url!, true);
+    const { pathname } = parse(req.url, true);
     const method = req.method;
-
     if (pathname === '/' && method === 'GET') {
         sendResponse(res, 200, { message: 'Welcome to the CRUD API!' });
-    } else if (pathname === '/api/users' && method === 'GET') {
+    }
+    else if (pathname === '/api/users' && method === 'GET') {
         sendResponse(res, 200, {
             status: 200,
             statusText: 'Ok',
             message: 'Users data fetched successfully',
             data: users
         });
-    } else if (pathname?.startsWith('/api/users/') && method === 'GET') {
+    }
+    else if (pathname?.startsWith('/api/users/') && method === 'GET') {
         const userId = pathname.split('/')[3];
         if (!validateUUID(userId)) {
             return sendResponse(res, 400, {
@@ -86,7 +73,6 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 message: 'Invalid userId. Please provide a valid UUID.'
             });
         }
-
         const user = users.find(user => user.id === userId);
         if (!user) {
             return sendResponse(res, 404, {
@@ -95,18 +81,17 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 message: 'User not found with the provided userId.'
             });
         }
-
         sendResponse(res, 200, {
             status: 200,
             statusText: 'Ok',
             message: 'User data fetched successfully',
             data: user
         });
-    } else if (pathname === '/api/users' && method === 'POST') {
+    }
+    else if (pathname === '/api/users' && method === 'POST') {
         (async () => {
             try {
                 const { username, age, hobbies } = await getRequestBody(req);
-    
                 if (!username || !age || !Array.isArray(hobbies)) {
                     return sendResponse(res, 400, {
                         status: 400,
@@ -114,14 +99,12 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                         message: 'Missing required fields: username, age, or hobbies.'
                     });
                 }
-    
-                const newUser: User = {
+                const newUser = {
                     id: uuidv4(),
                     username,
                     age,
                     hobbies: hobbies.length > 0 ? hobbies : []
                 };
-    
                 users.push(newUser);
                 sendResponse(res, 201, {
                     status: 201,
@@ -129,7 +112,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                     message: 'User created successfully',
                     data: newUser
                 });
-            } catch (error) {
+            }
+            catch (error) {
                 sendResponse(res, 400, {
                     status: 400,
                     statusText: 'Bad Request',
@@ -137,7 +121,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 });
             }
         })();
-    } else if (pathname?.startsWith('/api/users/') && method === 'PUT') {
+    }
+    else if (pathname?.startsWith('/api/users/') && method === 'PUT') {
         (async () => {
             const userId = pathname.split('/')[3];
             if (!validateUUID(userId)) {
@@ -147,11 +132,9 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                     message: 'Invalid userId. Please provide a valid UUID.'
                 });
             }
-    
             try {
                 const body = await getRequestBody(req);
                 const { username, age, hobbies } = body;
-    
                 const userIndex = users.findIndex(user => user.id === userId);
                 if (userIndex === -1) {
                     return sendResponse(res, 404, {
@@ -160,29 +143,29 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                         message: 'User not found with the provided userId.'
                     });
                 }
-    
                 users[userIndex] = {
                     ...users[userIndex],
                     username: username || users[userIndex].username,
                     age: age || users[userIndex].age,
                     hobbies: hobbies !== undefined ? hobbies : users[userIndex].hobbies
                 };
-    
                 sendResponse(res, 200, {
                     status: 200,
                     statusText: 'Ok',
                     message: 'User updated successfully',
                     data: users[userIndex]
                 });
-            } catch (error) {
+            }
+            catch (error) {
                 sendResponse(res, 400, {
                     status: 400,
                     statusText: 'Bad Request',
                     message: error === 'Invalid JSON' ? 'Invalid JSON format in request body.' : 'Error processing request.'
                 });
             }
-        })();    
-    } else if (pathname?.startsWith('/api/users/') && method === 'DELETE') {
+        })();
+    }
+    else if (pathname?.startsWith('/api/users/') && method === 'DELETE') {
         const userId = pathname.split('/')[3];
         if (!validateUUID(userId)) {
             return sendResponse(res, 400, {
@@ -191,7 +174,6 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 message: 'Invalid userId. Please provide a valid UUID.'
             });
         }
-
         const userIndex = users.findIndex(user => user.id === userId);
         if (userIndex === -1) {
             return sendResponse(res, 404, {
@@ -200,11 +182,11 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 message: 'User not found with the provided userId.'
             });
         }
-
         users.splice(userIndex, 1);
         res.writeHead(204);
         res.end();
-    } else {
+    }
+    else {
         sendResponse(res, 404, {
             status: 404,
             statusText: 'Not Found',
@@ -212,11 +194,9 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
         });
     }
 });
-
-const validateUUID = (id: string) => {
+const validateUUID = (id) => {
     return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
 };
-
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
