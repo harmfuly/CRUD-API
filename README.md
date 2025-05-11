@@ -4,9 +4,9 @@
 
 ## Install packages
 
-
+```bash
     npm  install
-
+```
 
 ## Run the server
 
