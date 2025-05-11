@@ -32,16 +32,25 @@ const sendResponse = (res: ServerResponse, statusCode: number, data: object) => 
 };
 
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    if (req.method === 'OPTIONS') {
-        res.writeHead(204, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+    try {
+        if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            });
+            return res.end();
+        }
+        
+    } catch (error) {
+        sendResponse(res, 500, {
+            status: 500,
+            statusText: 'Internal Server Error',
+            message: 'Something went wrong on the server.'
         });
-        return res.end();
     }
     
-    console.log(`Incoming request: ${req.method} ${req.url}`);
+    
     const { pathname } = parse(req.url!, true);
     const method = req.method;
 
@@ -144,6 +153,10 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                         message: 'User not found with the provided userId.'
                     });
                 }
+
+                users.splice(userIndex, 1);
+                res.writeHead(204);
+                res.end();
 
                 users[userIndex] = {
                     ...users[userIndex],
