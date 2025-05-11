@@ -84,7 +84,7 @@ Response:
 
 Example:
 
-    curl -X PUT http://localhost:5001/api/users/{userId} \
+    curl -X PUT http://localhost:4000/api/users/{userId} \
     -H "Content-Type: application/json" \
     -d '{"username": "Updated User", "age": 30, "hobbies": ["fitness", "music"]}'
 
@@ -99,7 +99,7 @@ Response:
 
 Example:
 
-    curl -X DELETE http://localhost:5001/api/users/{userId}
+    curl -X DELETE http://localhost:4000/api/users/{userId}
 
 ## Error Handling
 
