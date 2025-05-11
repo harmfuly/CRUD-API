@@ -31,6 +31,20 @@ const sendResponse = (res: ServerResponse, statusCode: number, data: object) => 
     res.end(JSON.stringify(data));
 };
 
+const getRequestBody = async (req: IncomingMessage): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', chunk => body += chunk.toString());
+        req.on('end', () => {
+            try {
+                resolve(JSON.parse(body));
+            } catch {
+                reject('Invalid JSON');
+            }
+        });
+    });
+};
+
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     try {
         if (req.method === 'OPTIONS') {
@@ -89,14 +103,10 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
             data: user
         });
     } else if (pathname === '/api/users' && method === 'POST') {
-        let body = '';
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
-        req.on('end', () => {
+        (async () => {
             try {
-                const { username, age, hobbies } = JSON.parse(body);
-
+                const { username, age, hobbies } = await getRequestBody(req);
+    
                 if (!username || !age || !Array.isArray(hobbies)) {
                     return sendResponse(res, 400, {
                         status: 400,
@@ -104,14 +114,14 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                         message: 'Missing required fields: username, age, or hobbies.'
                     });
                 }
-
+    
                 const newUser: User = {
                     id: uuidv4(),
                     username,
                     age,
                     hobbies: hobbies.length > 0 ? hobbies : []
                 };
-
+    
                 users.push(newUser);
                 sendResponse(res, 201, {
                     status: 201,
@@ -123,28 +133,25 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 sendResponse(res, 400, {
                     status: 400,
                     statusText: 'Bad Request',
-                    message: 'Invalid JSON format in request body.'
+                    message: typeof error === 'string' ? error : 'Invalid JSON format in request body.'
                 });
             }
-        });
+        })();
     } else if (pathname?.startsWith('/api/users/') && method === 'PUT') {
-        const userId = pathname.split('/')[3];
-        if (!validateUUID(userId)) {
-            return sendResponse(res, 400, {
-                status: 400,
-                statusText: 'Bad Request',
-                message: 'Invalid userId. Please provide a valid UUID.'
-            });
-        }
-
-        let body = '';
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
-        req.on('end', () => {
+        (async () => {
+            const userId = pathname.split('/')[3];
+            if (!validateUUID(userId)) {
+                return sendResponse(res, 400, {
+                    status: 400,
+                    statusText: 'Bad Request',
+                    message: 'Invalid userId. Please provide a valid UUID.'
+                });
+            }
+    
             try {
-                const { username, age, hobbies } = JSON.parse(body);
-
+                const body = await getRequestBody(req);
+                const { username, age, hobbies } = body;
+    
                 const userIndex = users.findIndex(user => user.id === userId);
                 if (userIndex === -1) {
                     return sendResponse(res, 404, {
@@ -153,18 +160,14 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                         message: 'User not found with the provided userId.'
                     });
                 }
-
-                users.splice(userIndex, 1);
-                res.writeHead(204);
-                res.end();
-
+    
                 users[userIndex] = {
                     ...users[userIndex],
                     username: username || users[userIndex].username,
                     age: age || users[userIndex].age,
                     hobbies: hobbies !== undefined ? hobbies : users[userIndex].hobbies
                 };
-
+    
                 sendResponse(res, 200, {
                     status: 200,
                     statusText: 'Ok',
@@ -175,10 +178,10 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
                 sendResponse(res, 400, {
                     status: 400,
                     statusText: 'Bad Request',
-                    message: 'Invalid JSON format in request body.'
+                    message: error === 'Invalid JSON' ? 'Invalid JSON format in request body.' : 'Error processing request.'
                 });
             }
-        });
+        })();    
     } else if (pathname?.startsWith('/api/users/') && method === 'DELETE') {
         const userId = pathname.split('/')[3];
         if (!validateUUID(userId)) {
